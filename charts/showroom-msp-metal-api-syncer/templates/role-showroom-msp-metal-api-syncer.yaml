@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: showroom-msp-metal-api-syncer-role
+rules:
+  - apiGroups:
+      - metal.ironcore.dev
+    resources:
+      - "*"
+    verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]

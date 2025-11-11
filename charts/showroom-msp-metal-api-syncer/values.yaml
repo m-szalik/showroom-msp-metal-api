@@ -1,0 +1,18 @@
+version: 0.0.0
+registry: ghcr.io/apeirora
+images:
+  syncer: /showroom-msp-metal-api-syncer
+
+serviceAccount: showroom-msp-metal-api-syncer-manager
+
+MSP:
+  providers:
+    kind:
+      enabled: "false"
+    default:
+      enabled: "true"
+
+KCP:
+  kubeconfig:
+    secretName: kcp-kubeconfig
+  endpoint:

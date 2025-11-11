@@ -1,0 +1,22 @@
+{{- if .Values.frontend.enabled }}
+{{- $frontend := .Values.frontend -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "metal-api.frontend.fullname" . }}
+  labels:
+    {{- include "metal-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: {{ $frontend.service.type }}
+  ports:
+    - port: {{ $frontend.service.port }}
+      targetPort: {{ $frontend.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "metal-api.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+{{- end }}
+

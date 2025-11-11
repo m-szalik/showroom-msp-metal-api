@@ -1,0 +1,6 @@
+version: 0.0.0
+registry: ghcr.io/apeirora
+mockServer:
+  image: /showroom-msp-metal-api-redfish-mock-server:v1
+  ip: 100.106.94.220
+  macAddr: 12:29:4b:68:e7:7d

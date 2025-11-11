@@ -1,0 +1,108 @@
+{{- if .Values.frontend.enabled }}
+{{- $frontend := .Values.frontend -}}
+{{- $content := .Values.frontend.content -}}
+{{- $mountContent := and $content.enabled $content.mount.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "metal-api.frontend.fullname" . }}
+  labels:
+    {{- include "metal-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ $frontend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "metal-api.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "metal-api.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+      {{- with $frontend.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with $frontend.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "metal-api.frontend.serviceAccountName" . }}
+      {{- with $frontend.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ $frontend.image.repository }}:{{ $frontend.image.tag }}"
+          imagePullPolicy: {{ $frontend.image.pullPolicy }}
+          {{- with $frontend.container.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $frontend.container.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ $frontend.container.port }}
+              protocol: TCP
+          {{- with $frontend.container.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $frontend.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $frontend.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $extraMounts := $frontend.container.extraVolumeMounts }}
+          {{- if or $mountContent $extraMounts }}
+          volumeMounts:
+            {{- if $mountContent }}
+            - name: {{ include "metal-api.contentBundle.volumeName" . }}
+              mountPath: {{ $content.mount.path }}
+              {{- if $content.mount.subPath }}
+              subPath: {{ $content.mount.subPath }}
+              {{- end }}
+            {{- end }}
+            {{- with $extraMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+      {{- $volumes := $frontend.extraVolumes }}
+      {{- if or $mountContent $volumes }}
+      volumes:
+        {{- if $mountContent }}
+        - name: {{ include "metal-api.contentBundle.volumeName" . }}
+          configMap:
+            name: {{ include "metal-api.contentBundle.configMapName" . }}
+            items:
+              - key: {{ .Values.frontend.contentKey }}
+                path: {{ $content.mount.subPath | default .Values.frontend.contentKey }}
+        {{- end }}
+        {{- with $volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- with $frontend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $frontend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $frontend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+

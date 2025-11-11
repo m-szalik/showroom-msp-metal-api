@@ -1,0 +1,18 @@
+1. Get the Metal API UI URL:
+{{- if and .Values.frontend.enabled .Values.frontend.ingress.enabled }}
+  {{ include "metal-api.scheme" . }}://{{ .Values.frontend.ingress.host | default (include "metal-api.host" .) }}
+{{- else if and .Values.frontend.enabled (contains "NodePort" .Values.frontend.service.type) }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "metal-api.frontend.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://${NODE_IP}:${NODE_PORT}
+{{- else if and .Values.frontend.enabled (contains "LoadBalancer" .Values.frontend.service.type) }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be ready.
+           Watch with 'kubectl get svc --namespace {{ .Release.Namespace }} -w {{ include "metal-api.frontend.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "metal-api.frontend.fullname" . }} --template "{{`{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}`}}"); echo http://${SERVICE_IP}:{{ .Values.frontend.service.port }}
+{{- else if .Values.frontend.enabled }}
+  kubectl port-forward svc/{{ include "metal-api.frontend.fullname" . }} {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }}
+  echo http://127.0.0.1:{{ .Values.frontend.service.port }}
+{{- else }}
+  Frontend deployment disabled; no URL exposed.
+{{- end }}
+

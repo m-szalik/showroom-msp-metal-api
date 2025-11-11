@@ -1,0 +1,79 @@
+nameOverride: ""
+fullnameOverride: ""
+
+global:
+  subdomain: metal-api
+  baseDomain: example.com
+  scheme: https
+  contentPath: /content.json
+  hostOverride: ""
+
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/example/metal-api-frontend
+    tag: "0.0.1"
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+  podAnnotations: {}
+  podSecurityContext: {}
+  securityContext: {}
+  container:
+    port: 80
+    command: []
+    args: []
+    env: []
+    extraVolumeMounts: []
+  extraVolumes: []
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  ingress:
+    enabled: true
+    className: traefik
+    annotations: {}
+    host: ""
+    path: /
+    pathType: Prefix
+    tls:
+      enabled: true
+      secretName: ""
+      hosts: []
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  contentKey: content.json
+  content:
+    enabled: true
+    contentFile: files/content.json
+    mount:
+      enabled: true
+      path: /usr/share/nginx/html/content.json
+      subPath: content.json
+
+portalIntegration:
+  enabled: false
+  contentPath: "/content.json"
+  image:
+    repository: nginx
+    tag: "1.25"
+    pullPolicy: IfNotPresent
+  resources: {}
+  ingress:
+    annotations: {}
+  kubeconfig:
+    secretName: ""
+    secretNamespace: ""
+    key: kubeconfig
+  kubectl:
+    image:
+      repository: bitnami/kubectl
+      tag: latest
+      pullPolicy: IfNotPresent

@@ -1,0 +1,16 @@
+{{- if .Values.portalIntegration.enabled }}
+{{- $remoteNs := .Values.portalIntegration.kubeconfig.secretNamespace | default .Release.Namespace }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-portal-integration-apiexport
+  namespace: {{ $remoteNs }}
+  labels:
+    {{- include "metal-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: portal-integration
+{{ $template := (.Files.Get "files/apiexport.yaml") }}
+data:
+  apiexport.yaml: |-
+{{ tpl $template . | indent 4 }}
+{{- end }}
+

@@ -1,0 +1,132 @@
+name: CI
+# golangci-lint version: v1.62.2
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/go.mod'
+      - '**/go.sum'
+      - '**/*.go'
+      - '.github/workflows/ci.yml'
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [ "syncer" ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go - ${{matrix.dir}}
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{matrix.dir}}/go.mod
+          cache: true
+
+      - name: Unit tests - ${{matrix.dir}}
+        shell: bash
+        env:
+          GOMAXPROCS: 2
+        run: |
+          set -o pipefail
+          go test -v -race -covermode=atomic -coverprofile=cover.out ./... | tee test.out
+
+      - name: Upload coverage artifact - ${{matrix.dir}}
+        if: hashFiles(format('{0}/cover.out', matrix.dir)) != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: ${{matrix.dir}}/cover.out
+
+      - name: Coverage extract - ${{ matrix.dir }}
+        if: ${{ hashFiles(format('{0}/cover.out', matrix.dir)) != '' }}
+        uses: m-szalik/github-actions/actions/go-cover@v1
+        with:
+          working-directory: ${{ matrix.dir }}
+          cover-file: cover.out
+
+      - name: Upload coverage md report - ${{matrix.dir}}
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: coverage
+          path: "${{matrix.dir}}/coverage.md"
+
+      - name: Comment coverage on PR - ${{matrix.dir}}
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: "${{matrix.dir}}/coverage.md"
+
+      - name: Enforce coverage threshold (optional) - ${{matrix.dir}}
+        shell: bash
+        run: |
+          if [ -n "${COVERAGE_MIN}" ]; then
+            pct=$(go tool cover -func=cover.out | awk '/total:/ {sub(/%/,"",$3); print $3}')
+            awk -v p="$pct" -v m="$COVERAGE_MIN" 'BEGIN{ if (p+0 < m+0) { printf("Coverage %.2f%% < %.2f%%\n", p, m); exit 1 } }'
+          else
+            echo "COVERAGE_MIN not set; skipping coverage gate"
+          fi
+  lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [ "syncer" ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go - ${{matrix.dir}}
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ${{matrix.dir}}/go.mod
+          cache: true
+
+      - name: Go linters (golangci-lint) - ${{matrix.dir}}
+        run: |
+          make lint
+
+  helm_charts:
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [ "charts/showroom-msp-metal-api-syncer", "charts/metal-api", "charts/showroom-redfish-mock-server" ]
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Helm dependency update - ${{matrix.dir}}
+        run: |
+          helm dependency update .
+
+      - name: Helm lint - ${{matrix.dir}}
+        run: |
+          helm lint .

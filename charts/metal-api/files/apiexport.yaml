@@ -1,0 +1,11 @@
+apiVersion: apis.kcp.io/v1alpha1
+kind: APIExport
+metadata:
+  name: metal.ironcore.dev
+  labels:
+    ui.platform-mesh.io/content-for: metal.ironcore.dev
+spec:
+  latestResourceSchemas:
+    - showroom.servers.metal.ironcore.dev
+    - showroom.serverclaims.metal.ironcore.dev
+

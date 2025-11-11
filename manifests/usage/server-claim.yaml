@@ -1,0 +1,10 @@
+apiVersion: metal.ironcore.dev/v1alpha1
+kind: ServerClaim
+metadata:
+  labels:
+  name: bmc-2-system-0-claim
+spec:
+ serverRef:
+    name: bmc-2-system-0
+ image: ghcr.io/m-szalik/showroom-redfish-backend/os-image-ubuntu:0.1.0
+ power: "On"    # TODO This does not make any action

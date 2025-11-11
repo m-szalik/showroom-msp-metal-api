@@ -1,0 +1,17 @@
+---
+apiVersion: tenancy.kcp.io/v1alpha1
+kind: WorkspaceType
+metadata:
+  name: metal-workspace-type
+spec:
+  defaultAPIBindings:
+  - export: metal-operator-api-export
+    path: root:providers:metal-api
+  defaultChildWorkspaceType:
+    name: universal
+    path: root
+  extend:
+    with:
+    - name: universal
+      path: root
+

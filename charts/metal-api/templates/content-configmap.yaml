@@ -1,0 +1,19 @@
+{{- $content := .Values.frontend.content -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "metal-api.contentBundle.configMapName" . }}
+  labels:
+    {{- include "metal-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  namespace: {{ .Release.Namespace }}
+data:
+  {{ .Values.frontend.contentKey }}: |-
+{{- if and $content.enabled $content.contentFile }}
+{{- $raw := (.Files.Get $content.contentFile) -}}
+{{- $rendered := replace "__HOST__" (include "metal-api.host" .) $raw -}}
+{{ $rendered | nindent 4 }}
+{{- else }}
+    {}
+{{- end }}
+

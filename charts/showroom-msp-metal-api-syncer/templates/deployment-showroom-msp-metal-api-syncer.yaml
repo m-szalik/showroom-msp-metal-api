@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: showroom-msp-metal-api-syncer
+  labels:
+    app: msp-metal-api-syncer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msp-metal-api-syncer
+  template:
+    metadata:
+      labels:
+        app: msp-metal-api-syncer
+    spec:
+      serviceAccountName: {{.Values.serviceAccount}}
+      containers:
+        - name: msp-metal-api-syncer
+          image: {{.Values.registry}}{{.Values.images.syncer}}:{{required ".Values.version must be provided" .Values.version}}
+          env:
+            - name: WITH_KIND_PROVIDER
+              value: {{.Values.MSP.providers.kind.enabled | quote}}
+            - name: WITH_DEFAULT_CLIENT_PROVIDER
+              value: {{.Values.MSP.providers.default.enabled | quote}}
+            - name: KCP_KUBECONFIG
+              value: /kcp.admin.config
+            - name: KCP_API_EXPORT_ENDPOINT
+              value: {{required ".Values.KCP.endpoint must be provided" .Values.KCP.endpoint}}
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          volumeMounts:
+            - mountPath: /kcp.admin.config
+              subPath: kubeconfig
+              name: kcp-config
+      volumes:
+        - name: kcp-config
+          secret:
+            secretName: {{.Values.KCP.kubeconfig.secretName}}

@@ -1,0 +1,32 @@
+{
+    "name": "metal-servers",
+    "creationTimestamp": "2022-05-17T11:37:17Z",
+    "luigiConfigFragment": {
+        "data": {
+            "nodes": [
+                {
+                    "pathSegment": "metal-servers",
+                    "navigationContext": "metal-servers",
+                    "label": "Metal Servers",
+                    "icon": "machine",
+                    "category": {
+                        "label": "Metal",
+                        "icon": "machine",
+                        "collapsible": true,
+                        "order": 5
+                    },
+                    "entityType": "main.core_platform-mesh_io_account.core_namespace",
+                    "loadingIndicator": {
+                        "enabled": false
+                    },
+                    "keepSelectedForChildren": true,
+                    "url": "https://metal-api.private-llm.shop/index.html",
+                    "context": {
+                        "graphqlUrl": "/root/graphql",
+                        "defaultNamespace": "default"
+                    }
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,55 @@
+{{- if and .Values.frontend.enabled .Values.frontend.ingress.enabled -}}
+{{- $frontend := .Values.frontend -}}
+{{- $host := $frontend.ingress.host | default (include "metal-api.host" .) -}}
+{{- $annotations := dict -}}
+{{- with $frontend.ingress.annotations }}
+{{- range $key, $value := . }}
+{{- $_ := set $annotations $key $value -}}
+{{- end -}}
+{{- end -}}
+{{- if and $host (not (hasKey $annotations "dns.gardener.cloud/dnsnames")) -}}
+{{- $_ := set $annotations "dns.gardener.cloud/dnsnames" $host -}}
+{{- end -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "metal-api.frontend.fullname" . }}
+  labels:
+    {{- include "metal-api.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+  namespace: {{ .Release.Namespace }}
+  {{- if gt (len $annotations) 0 }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $frontend.ingress.className }}
+  ingressClassName: {{ $frontend.ingress.className }}
+  {{- end }}
+  {{- if and $frontend.ingress.tls.enabled (or (gt (len $frontend.ingress.tls.hosts) 0) $host) }}
+  tls:
+    - secretName: {{ $frontend.ingress.tls.secretName }}
+      hosts:
+        {{- if gt (len $frontend.ingress.tls.hosts) 0 }}
+        {{- range $frontend.ingress.tls.hosts }}
+        - {{ . }}
+        {{- end }}
+        {{- else if $host }}
+        - {{ $host }}
+        {{- end }}
+  {{- end }}
+  rules:
+    - {{- if $host }}
+      host: {{ $host }}
+      {{- end }}
+      http:
+        paths:
+          - path: {{ $frontend.ingress.path }}
+            pathType: {{ $frontend.ingress.pathType }}
+            backend:
+              service:
+                name: {{ include "metal-api.frontend.fullname" . }}
+                port:
+                  number: {{ $frontend.service.port }}
+{{- end }}
+

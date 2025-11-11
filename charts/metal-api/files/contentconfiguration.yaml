@@ -1,0 +1,12 @@
+apiVersion: ui.platform-mesh.io/v1alpha1
+kind: ContentConfiguration
+metadata:
+  name: metal-ui
+  labels:
+    ui.platform-mesh.io/entity: core_platform-mesh_io_account
+    ui.platform-mesh.io/content-for: metal.ironcore.dev
+spec:
+  remoteConfiguration:
+    contentType: json
+    url: {{ include "metal-api.contentURL" . | quote }}
+

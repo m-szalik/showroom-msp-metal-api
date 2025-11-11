@@ -1,0 +1,20 @@
+---
+apiVersion: tenancy.kcp.io/v1alpha1
+kind: Workspace
+metadata:
+  name: customer-1
+spec:
+  type:
+    name: metal-workspace-type
+    path: root
+
+
+---
+apiVersion: tenancy.kcp.io/v1alpha1
+kind: Workspace
+metadata:
+  name: customer-2
+spec:
+  type:
+    name: metal-workspace-type
+    path: root

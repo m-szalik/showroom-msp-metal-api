@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: metal-operator-system
+  name: redfish-mockup-server
+  labels:
+    app: redfish-mockup-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redfish-mockup-server
+  template:
+    metadata:
+      labels:
+        app: redfish-mockup-server
+    spec:
+      containers:
+        - name: redfish-mockup-server
+          image: {{.Values.registry}}/{{.Values.mockServer.image}}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /redfish/v1
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /redfish/v1
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redfish-mockup-server
+  namespace: metal-operator-system
+  labels:
+    app: redfish-mockup-server
+spec:
+  selector:
+    app: redfish-mockup-server
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+  type: ClusterIP
+  clusterIP: {{.Values.mockServer.ip}}

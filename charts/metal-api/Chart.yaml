@@ -1,0 +1,14 @@
+apiVersion: v2
+name: metal-api
+description: Helm chart bundling the Metal API showroom integration.
+type: application
+version: 0.1.4
+appVersion: "0.1.4"
+
+home: https://github.com/apeirora/platform-mesh
+sources:
+  - https://github.com/apeirora/platform-mesh/tree/main/showroom-msp-metal-api
+maintainers:
+  - name: Apeiro Platform Mesh Team
+    email: platform-mesh@apeiro-ra.com
+
