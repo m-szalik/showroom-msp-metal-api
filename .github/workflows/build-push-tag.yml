@@ -5,6 +5,8 @@ on:
     tags:
       - 'v*'
       - '*.*.*'
+    branches:
+      - develop
 
 permissions:
   contents: write
@@ -38,12 +40,14 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Helm login
+      - name: Install OCM CLI
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          curl -sSfL https://ocm.software/install.sh | sudo bash  
 
       - name: Create And Publish Artifacts
         env:
-          VERSION: ${{ steps.vars.outputs.version }}
+        #  VERSION: ${{ steps.vars.outputs.version }}
+          VERSION: "0.1.0"
         run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
           make release VERSION=${VERSION}

@@ -8,7 +8,6 @@ GITHUB_REPOSITORY_OWNER ?= apeirora
 OCM_REPOSITORY ?= oci://ghcr.io/apeirora/ocm
 
 
-
 .PHONY: all
 all:
 	@$(MAKE) in-dirs TARGET=all
@@ -71,7 +70,7 @@ helm-build-and-publish:
 	CHART_DIR="$$(dirname "$(CHART_FILE)")"; \
 	pkg_out="$$(helm package "$$CHART_DIR" --destination "$$CHART_DIR")"; \
 	archive="$$(echo "$$pkg_out" | awk '{print $$NF}')"; \
-	echo "Archive: $$archive"; \
+	echo "Archive: $$archive pushing to oci://ghcr.io/$$GITHUB_REPOSITORY/charts"; \
 	helm push "$$archive" oci://ghcr.io/$(GITHUB_REPOSITORY)/charts
 
 helm-release: helm-version-update helm-build-and-publish
