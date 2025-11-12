@@ -47,7 +47,7 @@ jobs:
       - name: Create And Publish Artifacts
         env:
         #  VERSION: ${{ steps.vars.outputs.version }}
-          VERSION: "0.1.0"
+          VERSION: "0.1.1"
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username ${{ github.actor }} --password-stdin
           make release VERSION=${VERSION}
